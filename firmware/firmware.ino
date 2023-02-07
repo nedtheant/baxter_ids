@@ -79,10 +79,14 @@ void record_card(void) {
     EEPROM.get(eeAdr, r_uid);
     if (r_uid == uid) {
       // Duplicate scan (long red)
+      Serial.print(uid);
+      Serial.println(" has already scanned in.");
       flash(RED_LED, 300, 1);
       return;
     } else if (r_uid == 0) {
       // Good scan (long green), add to eeprom
+      Serial.print(uid);
+      Serial.println(" welcome to coffee night.");
       flash(GREEN_LED, 300, 1);
       EEPROM.put(eeAdr, uid); 
       return;
