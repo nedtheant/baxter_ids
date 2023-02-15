@@ -25,7 +25,10 @@ def get_uid_dict():
     uid_dict = dict()
     for line in dicti:
         line = line.split(',')
-        uid_dict[line[0]] = line[1]
+        try:
+            uid_dict[line[0]] = line[1]
+        except IndexError:
+            break
     return uid_dict
 
 
