@@ -15,6 +15,7 @@
 // PIN DEFINITIONS (SPI pins in readme)
 #define GREEN_LED     8
 #define RED_LED       7
+#define BLUE_LED      6
 #define RF_RST        9
 #define RF_SS         10
 
@@ -27,6 +28,10 @@ void setup(void) {
   Serial.begin(9600);
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
+  pinMode(BLUE_LED, OUTPUT);
+  digitalWrite(GREEN_LED, HIGH);  // Active low
+  digitalWrite(RED_LED, HIGH);
+  digitalWrite(BLUE_LED, LOW);
   SPI.begin();
   rf.PCD_Init();
 
@@ -98,12 +103,14 @@ void record_card(void) {
 
 
 void flash(int pin, int del, int times) {
+  digitalWrite(BLUE_LED, HIGH);
   for (int i = 0; i < times; i++) {
-    digitalWrite(pin, HIGH);
-    delay(del);
     digitalWrite(pin, LOW);
     delay(del);
+    digitalWrite(pin, HIGH);
+    delay(del);
   }
+  digitalWrite(BLUE_LED, LOW);
 }
 
 
