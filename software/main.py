@@ -43,14 +43,14 @@ def get():
         if id == "0":
             break
         try:
-            result.append(uid_dict[id])
+            result.append([id,uid_dict[id]])
         except KeyError:
-            result.append(f"UNKNOWN ID ({id})")
+            result.append([id,f"UNKNOWN ID ({id})"])
             print(f"uid ({id}) doesn't have an owner.")
     
     with open(f'{datetime.now().strftime("%d-%m-%y")}_attendance.csv', 'w') as f:
         for line in result:
-            f.write(line + '\n')
+            f.write(','.join(line) + '\n')
 
 
 def clear():
@@ -81,7 +81,25 @@ def monitor():
         pass
 
 
-print('Commands: get (saves attendance), clear (clears readers memory), monitor (Prints checked in people as they do it), exit (have a guess).')
+def first_time():
+    ard.reset_input_buffer()
+    uids = []
+    try:
+        while True:
+            read = ard.readline().decode('utf-8')
+            if len(read) != 0:
+                # Find the uid.
+                uid = read.split(' ')[0]
+                rest = ' ' + ' '.join(read.split(' ')[1:])
+                if uid not in uids:
+                    uids.append(uid)
+                print(uids.index(uid))
+                
+    except KeyboardInterrupt:
+        pass
+
+
+print('Commands: get (saves attendance), clear (clears readers memory), monitor (Prints checked in people as they do it), first (prints index of uid in attendance when scanned in), exit (have a guess).')
 while True:
     command = input('> ').lower()
     if command == "get":
@@ -92,6 +110,7 @@ while True:
         break
     elif command == "monitor":
         monitor()
+    elif command == "first":
+        first_time()
     else:
-        print("Bruh the commands are get, clear, monitor and exit.")
-
+        print("Bruh the commands are get, clear, monitor, first and exit.")
