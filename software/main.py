@@ -13,10 +13,6 @@ import time
 from datetime import datetime
 import re
 
-ard = serial.Serial(port="COM6", baudrate=9600)
-ard.timeout = 5
-time.sleep(2)  # allow time for arduino to connect.
-
 
 def get_uid_dict():
     f = open('uid_dictionary.txt', 'r')
@@ -26,7 +22,7 @@ def get_uid_dict():
     for line in dicti:
         line = line.split(',')
         try:
-            uid_dict[line[0]] = line[1]
+            uid_dict[line[0]] = [line[1], line[2]]  # [firstname,lastname]
         except IndexError:
             break
     return uid_dict
@@ -36,7 +32,6 @@ def get():
     ard.reset_input_buffer()
     ard.write(bytes('dump\n', 'utf-8'))
     data = ard.read_until(b'End EEPROM', size=100000).decode('utf-8')
-
     data = data.split('\n')[1]  # Remove start message
     data = data.split(' ')[:-2]  # Remove end message
 
@@ -46,7 +41,7 @@ def get():
         if id == "0":
             break
         try:
-            result.append([id,uid_dict[id]])
+            result.append([id,uid_dict[id][0],uid_dict[id][1]])
         except KeyError:
             result.append([id,f"UNKNOWN ID ({id})"])
             print(f"uid ({id}) doesn't have an owner.")
@@ -102,18 +97,23 @@ def first_time():
         pass
 
 
-print('Commands: get (saves attendance), clear (clears readers memory), monitor (Prints checked in people as they do it), first (prints index of uid in attendance when scanned in), exit (have a guess).')
-while True:
-    command = input('> ').lower()
-    if command == "get":
-        get()
-    elif command == "clear":
-        clear()
-    elif command == "exit":
-        break
-    elif command == "monitor":
-        monitor()
-    elif command == "first":
-        first_time()
-    else:
-        print("Bruh the commands are get, clear, monitor, first and exit.")
+if __name__ == "__main__":
+    ard = serial.Serial(port="COM6", baudrate=9600)
+    ard.timeout = 5
+    time.sleep(2)  # allow time for arduino to connect.
+
+    print('Commands: get (saves attendance), clear (clears readers memory), monitor (Prints checked in people as they do it), first (prints index of uid in attendance when scanned in), exit (have a guess).')
+    while True:
+        command = input('> ').lower()
+        if command == "get":
+            get()
+        elif command == "clear":
+            clear()
+        elif command == "exit":
+            break
+        elif command == "monitor":
+            monitor()
+        elif command == "first":
+            first_time()
+        else:
+            print("Bruh the commands are get, clear, monitor, first and exit.")
