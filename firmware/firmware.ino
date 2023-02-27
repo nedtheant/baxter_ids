@@ -9,45 +9,50 @@
 */ 
 
 #include <EEPROM.h>
-#include <MFRC522.h>
-#include <SPI.h>
+#include <SoftwareSerial.h>
 
-// PIN DEFINITIONS (SPI pins in readme)
+// PIN DEFINITIONS
 #define GREEN_LED     8
 #define RED_LED       7
 #define BLUE_LED      6
-#define RF_RST        9
-#define RF_SS         10
+#define TX            4   // Connect to scanner RX
+#define RX            3   // Connect to scanner TX
 
-MFRC522 rf(RF_SS, RF_RST);
+SoftwareSerial b_scan(RX, TX);
 String input_string = "";   
 bool command_input = false;
+String barcode = "";
+bool barcode_end = false;
 
 
 void setup(void) {
   Serial.begin(9600);
+  b_scan.begin(9600);
+
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);
   pinMode(BLUE_LED, OUTPUT);
   digitalWrite(GREEN_LED, HIGH);  // Active low
   digitalWrite(RED_LED, HIGH);
   digitalWrite(BLUE_LED, LOW);
-  SPI.begin();
-  rf.PCD_Init();
-
-  flash(GREEN_LED, 100, 2);
+  
+  flash(GREEN_LED, 100, 2);   // Flash green twice signalling finish setup
 }
 
 
 void loop(void) {
-  if (rf.PICC_IsNewCardPresent()) {
+  if (b_scan.available()) {
+    softwareSerialEvent();
+  }
+
+  if (barcode_end) {
     record_card();
+    barcode_end = false;
+    barcode = "";
   }
 
   if (command_input) {
-    if (input_string == "unknown_uid") {
-      flash(RED_LED, 500, 3);
-    } else if (input_string == "dump") {
+    if (input_string == "dump") {
       dump_eeprom();
     } else if (input_string == "clear") {
       clear_eeprom();
@@ -55,6 +60,18 @@ void loop(void) {
 
     command_input = false;
     input_string = "";
+  }
+}
+
+
+void softwareSerialEvent() {
+  while (b_scan.available()) {
+    char inChar = (char)b_scan.read();
+    if (inChar == '\n') {
+      barcode_end = true;
+      return;
+    }
+    barcode += inChar;
   }
 }
 
@@ -72,23 +89,24 @@ void serialEvent() {  // Called at the end of every main loop if data is availab
 
 
 void record_card(void) {
-  unsigned long uid = get_uid();
-  if (uid == 0) {
+  
+  unsigned long zid = get_zid();
+  if (zid == 0) {
+    Serial.println("Bad barcode.");
     flash(RED_LED, 100, 2);
-    return;
   }
 
-  // Check if uid already in eeprom
-   unsigned long r_uid;
+  // Check if zid already in eeprom
+  unsigned long r_zid;
   for (int eeAdr = 0; eeAdr < EEPROM.length(); eeAdr += sizeof(unsigned long)) {
-    EEPROM.get(eeAdr, r_uid);
-    if (r_uid == uid) {
+    EEPROM.get(eeAdr, r_zid);
+    if (r_zid == uid) {
       // Duplicate scan (long red)
-      Serial.print(uid);
+      Serial.print(zid);
       Serial.println(" has already scanned in.");
       flash(RED_LED, 300, 1);
       return;
-    } else if (r_uid == 0) {
+    } else if (r_zid == 0) {
       // Good scan (long green), add to eeprom
       Serial.print(uid);
       Serial.println(" welcome to coffee night.");
@@ -99,6 +117,14 @@ void record_card(void) {
   }
   // Ran out of memory.
   flash(RED_LED, 300, 10);
+}
+
+
+unsigned long get_zid() {
+  if (barcode.length() != 14) {
+    return 0;
+  }
+  return atoi(barcode.substring(2, 9));
 }
 
 
@@ -133,15 +159,3 @@ void dump_eeprom(void) {
   Serial.println("End EEPROM");
 }
 
-unsigned long get_uid(void) {
-  if (!rf.PICC_ReadCardSerial()) {
-    return 0;  // return 0 for empty or error.
-  }
-  unsigned long uid;
-  uid =  rf.uid.uidByte[0] << 24;
-  uid += rf.uid.uidByte[1] << 16;
-  uid += rf.uid.uidByte[2] <<  8;
-  uid += rf.uid.uidByte[3];
-  rf.PICC_HaltA(); // Stop reading
-  return uid;
-}

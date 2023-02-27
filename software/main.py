@@ -14,18 +14,18 @@ from datetime import datetime
 import re
 
 
-def get_uid_dict():
-    f = open('uid_dictionary.txt', 'r')
+def get_zid_dict():
+    f = open('zid_dictionary.txt', 'r')
     dicti = f.read().split('\n')
     f.close()
-    uid_dict = dict()
+    zid_dict = dict()
     for line in dicti:
         line = line.split(',')
         try:
-            uid_dict[line[0]] = [line[1], line[2]]  # [firstname,lastname]
+            zid_dict[line[0]] = [line[1], line[2]]  # [firstname,lastname]
         except IndexError:
             break
-    return uid_dict
+    return zid_dict
 
 
 def get():
@@ -35,7 +35,7 @@ def get():
     data = data.split('\n')[1]  # Remove start message
     data = data.split(' ')[:-2]  # Remove end message
 
-    uid_dict = get_uid_dict()
+    uid_dict = get_zid_dict()
     result = []
     for id in data:
         if id == "0":
@@ -43,8 +43,8 @@ def get():
         try:
             result.append([id,uid_dict[id][0],uid_dict[id][1]])
         except KeyError:
-            result.append([id,f"UNKNOWN ID ({id})"])
-            print(f"uid ({id}) doesn't have an owner.")
+            result.append([id,f"UNKNOWN zID ({id})"])
+            print(f"zid ({id}) is unknown.")
     
     with open(f'{datetime.now().strftime("%d-%m-%y")}_attendance.csv', 'w') as f:
         for line in result:
@@ -62,12 +62,12 @@ def clear():
 
 def monitor():
     ard.reset_input_buffer()
-    uid_dict = get_uid_dict()
+    uid_dict = get_zid_dict()
     try:
         while True:
             read = ard.readline().decode('utf-8')
             if len(read) != 0:
-                # Find and replace the uid.
+                # Find and replace the zid.
                 uid = read.split(' ')[0]
                 rest = ' ' + ' '.join(read.split(' ')[1:])
                 if uid in uid_dict:
@@ -79,30 +79,12 @@ def monitor():
         pass
 
 
-def first_time():
-    ard.reset_input_buffer()
-    uids = []
-    try:
-        while True:
-            read = ard.readline().decode('utf-8')
-            if len(read) != 0:
-                # Find the uid.
-                uid = read.split(' ')[0]
-                rest = ' ' + ' '.join(read.split(' ')[1:])
-                if uid not in uids:
-                    uids.append(uid)
-                print(uids.index(uid))
-                
-    except KeyboardInterrupt:
-        pass
-
-
 if __name__ == "__main__":
     ard = serial.Serial(port="COM6", baudrate=9600)
     ard.timeout = 5
     time.sleep(2)  # allow time for arduino to connect.
 
-    print('Commands: get (saves attendance), clear (clears readers memory), monitor (Prints checked in people as they do it), first (prints index of uid in attendance when scanned in), exit (have a guess).')
+    print('Commands: get (saves attendance), clear (clears readers memory), monitor (Prints checked in people as they do it), exit (have a guess).')
     while True:
         command = input('> ').lower()
         if command == "get":
@@ -113,7 +95,5 @@ if __name__ == "__main__":
             break
         elif command == "monitor":
             monitor()
-        elif command == "first":
-            first_time()
         else:
-            print("Bruh the commands are get, clear, monitor, first and exit.")
+            print("Bruh the commands are get, clear, monitor and exit.")
