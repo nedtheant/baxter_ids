@@ -71,7 +71,7 @@ def monitor():
                 uid = read.split(' ')[0]
                 rest = ' ' + ' '.join(read.split(' ')[1:])
                 if uid in uid_dict:
-                    print(uid_dict[uid] + rest)
+                    print(' '.join(uid_dict[uid]) + rest)
                 else: 
                     print(f"UNKNOWN ({uid})" + rest)
                 

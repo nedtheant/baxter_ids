@@ -22,7 +22,6 @@ SoftwareSerial b_scan(RX, TX);
 String input_string = "";   
 bool command_input = false;
 String barcode = "";
-bool barcode_end = false;
 
 
 void setup(void) {
@@ -43,14 +42,9 @@ void setup(void) {
 void loop(void) {
   if (b_scan.available()) {
     softwareSerialEvent();
-  }
-
-  if (barcode_end) {
     record_card();
-    barcode_end = false;
-    barcode = "";
   }
-
+    
   if (command_input) {
     if (input_string == "dump") {
       dump_eeprom();
@@ -65,13 +59,11 @@ void loop(void) {
 
 
 void softwareSerialEvent() {
+  barcode = "";
   while (b_scan.available()) {
     char inChar = (char)b_scan.read();
-    if (inChar == '\n') {
-      barcode_end = true;
-      return;
-    }
     barcode += inChar;
+    delay(5);
   }
 }
 
@@ -94,13 +86,14 @@ void record_card(void) {
   if (zid == 0) {
     Serial.println("Bad barcode.");
     flash(RED_LED, 100, 2);
+    return;
   }
 
   // Check if zid already in eeprom
   unsigned long r_zid;
   for (int eeAdr = 0; eeAdr < EEPROM.length(); eeAdr += sizeof(unsigned long)) {
     EEPROM.get(eeAdr, r_zid);
-    if (r_zid == uid) {
+    if (r_zid == zid) {
       // Duplicate scan (long red)
       Serial.print(zid);
       Serial.println(" has already scanned in.");
@@ -108,10 +101,10 @@ void record_card(void) {
       return;
     } else if (r_zid == 0) {
       // Good scan (long green), add to eeprom
-      Serial.print(uid);
+      Serial.print(zid);
       Serial.println(" welcome to coffee night.");
       flash(GREEN_LED, 300, 1);
-      EEPROM.put(eeAdr, uid); 
+      EEPROM.put(eeAdr, zid); 
       return;
     } 
   }
@@ -124,7 +117,7 @@ unsigned long get_zid() {
   if (barcode.length() != 14) {
     return 0;
   }
-  return atoi(barcode.substring(2, 9));
+  return barcode.substring(2, 9).toInt();
 }
 
 
@@ -158,4 +151,3 @@ void dump_eeprom(void) {
   }
   Serial.println("End EEPROM");
 }
-
