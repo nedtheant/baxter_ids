@@ -83,9 +83,9 @@ void serialEvent() {  // Called at the end of every main loop if data is availab
 void record_card(void) {
   
   unsigned long zid = get_zid();
-  if (zid == 0) {
+  if (zid == 0) {         // Flash 3 times red for a bad scan.
     Serial.println("Bad barcode.");
-    flash(RED_LED, 100, 2);
+    flash(RED_LED, 100, 3);
     return;
   }
 
@@ -94,16 +94,16 @@ void record_card(void) {
   for (int eeAdr = 0; eeAdr < EEPROM.length(); eeAdr += sizeof(unsigned long)) {
     EEPROM.get(eeAdr, r_zid);
     if (r_zid == zid) {
-      // Duplicate scan (long red)
+      // Duplicate scan (long green (don't need to differentiate between dupe scan))
       Serial.print(zid);
       Serial.println(" has already scanned in.");
-      flash(RED_LED, 300, 1);
+      flash(GREEN_LED, 500, 1);
       return;
     } else if (r_zid == 0) {
       // Good scan (long green), add to eeprom
       Serial.print(zid);
       Serial.println(" welcome to coffee night.");
-      flash(GREEN_LED, 300, 1);
+      flash(GREEN_LED, 500, 1);
       EEPROM.put(eeAdr, zid); 
       return;
     } 
@@ -115,6 +115,8 @@ void record_card(void) {
 
 unsigned long get_zid() {
   if (barcode.length() != 14) {
+    Serial.println("Bad barcode.");
+    flash(RED_LED, 100, 3);
     return 0;
   }
   return barcode.substring(2, 9).toInt();
