@@ -114,7 +114,7 @@ void record_card(void) {
 
 
 unsigned long get_zid() {
-  if (barcode.length() != 14) {
+  if (barcode.length() < 9) {
     Serial.println("Bad barcode.");
     flash(RED_LED, 100, 3);
     return 0;
