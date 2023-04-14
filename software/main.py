@@ -13,6 +13,7 @@ import time
 from datetime import datetime
 import re
 
+PORT = "YOUR PORT HERE"
 
 def get_zid_dict():
     f = open('zid_dictionary.txt', 'r')
@@ -80,7 +81,7 @@ def monitor():
 
 
 if __name__ == "__main__":
-    ard = serial.Serial(port="COM6", baudrate=9600)
+    ard = serial.Serial(port=PORT, baudrate=9600)
     ard.timeout = 5
     time.sleep(2)  # allow time for arduino to connect.
 
