@@ -1,0 +1,6 @@
+- Adjust dimensions of reader
+- Give clearance for 3d print expansion.
+- Engrave name and number on the bottom.
+
+need charging port
+new reader with acrylic windwo
