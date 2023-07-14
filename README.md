@@ -12,10 +12,10 @@ Code to run a reader and setup software for an id card reader for keeping track 
 6. Max attendences stored is ~256. If this happens the LED will flash RED for a while after a scan.
 ### Getting data off the device
 1. Plug the reader into your PC USB port. You will have to find which port this is.
-2. You can look up how to do this, on windows it'll be something like "COM3", on mac it'll be something like "dev/tty-USB1".
+2. You can look up how to do this ([Or use this link](https://au.mathworks.com/help/supportpkg/arduinoio/ug/find-arduino-port-on-windows-mac-and-linux.html)), on windows it'll be something like "COM3", on mac it'll be something like "dev/tty-USB1".
 3. In `/software/main.py`, update `PORT = "YOUR PORT HERE"` near the top of the file with whatever you found in step 2.
 4. Save this file.
-5. Run this file, you're gonna need to install python3.
+5. Run this file, you're gonna need to install [python3](https://www.python.org/downloads/) and [pyserial](https://pypi.org/project/pyserial/).
 6. Follow the instructions in the file. (get will save an .csv file to the `software` directory with the current date as the name. Be careful as you can overwrite attendances if you do multiple on the same day.)
 7. Make sure you clear attendances before the next use.
 
@@ -24,5 +24,6 @@ Code to run a reader and setup software for an id card reader for keeping track 
 - 2 red flashes for failed scan.
 - Green flash when successful scan (including duplicate scan).
 - 10 reds when eeprom runs out (Too many ids scanned).
+
 # HOW TO BUILD THE THING (Or buy off me for $1000)
-CONTINUE HERE
+mmm just buy it off me...
